@@ -94,5 +94,10 @@ May work on other single-phase Growatt inverters with minor modifications.
 ## Credits
 - [pvprodk/GrowattESPHome](https://github.com/pvprodk/GrowattESPHome)
 
+## Related Resources
+- [Detailed blog post about the flashing process](https://medium.com/@rorygallagher2010/flashing-a-growatt-shinewifi-x-replacing-cloud-firmware-with-esphome-for-local-solar-monitoring-99cacaa910f0)
+- [Official ESPHome documentation](https://esphome.io/)
+- [Alternative Growatt integration methods](https://www.splitbrain.org/blog/2023-11/03-growatt_and_home_assistant)
+
 ## License
 MIT
