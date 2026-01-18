@@ -20,9 +20,9 @@ Based on the excellent work by [pvprodk/GrowattESPHome](https://github.com/pvpro
 
 ## Installation
 
-1. Clone or download `growatt-optimized.yaml`
+1. Clone or download `growatt.yaml`
 2. Update WiFi credentials (lines 24-25)
-3. Flash using ESPHome: `esphome run growatt-optimized.yaml`
+3. Flash using ESPHome: `esphome run growatt.yaml`
 
 ## Compatibility
 
