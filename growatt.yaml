@@ -1,0 +1,253 @@
+substitutions:
+  device_name: Growatt
+  device_description: "Esphome for Growatt Optimized"
+  modbus_update_interval: 15s
+  skip_updates_slow: "6" 
+
+esphome:
+  name: growatt
+  project:
+    name: PVPro.ShineWifi-X
+    version: "2.0"
+
+esp8266:
+  board: esp07s
+
+logger:
+  baud_rate: 0
+  level: INFO
+
+api:
+
+ota:
+
+wifi:
+  ssid: "SSID"
+  password: "PASSWORD"
+  power_save_mode: none 
+  fast_connect: true
+
+  ap:
+    ssid: "Growatt Fallback Hotspot"
+    password: "12345678"
+
+captive_portal:
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+output:
+  - id: light_bl
+    platform: gpio
+    pin: 16
+  - id: light_gr
+    platform: gpio
+    pin: 0
+  - id: light_rd
+    platform: gpio
+    pin: 2
+
+uart:
+  - id: uart_id1
+    baud_rate: 115200
+    tx_pin: GPIO1
+    rx_pin: GPIO3
+
+modbus:
+  id: modbus1
+  uart_id: uart_id1
+  flow_control_pin: GPIO4
+
+modbus_controller:
+  - id: growatt
+    address: 0x1
+    modbus_id: modbus1
+    setup_priority: -10
+    update_interval: ${modbus_update_interval}
+
+sensor:
+  - platform: modbus_controller
+    name: "status_code"
+    skip_updates: $skip_updates_slow
+    address: 0
+    register_type: "read"
+    internal: true
+    accuracy_decimals: 0
+    id: status
+  
+  - platform: modbus_controller
+    name: "PV1 voltage"
+    address: 3
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 0
+    filters:
+    - multiply: 0.1
+    
+  - platform: modbus_controller
+    name: "PV1 current"
+    address: 4
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    state_class: measurement
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "PV1 Active power"
+    id: pv1_power
+    address: 5
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    icon: mdi:flash
+    value_type: U_DWORD
+    accuracy_decimals: 0
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "Frequency"
+    address: 37
+    register_type: "read"
+    unit_of_measurement: Hz
+    state_class: measurement
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.01
+
+  - platform: modbus_controller
+    name: "Voltage Phase A"
+    address: 38
+    register_type: "read"
+    unit_of_measurement: V
+    device_class: voltage
+    state_class: measurement
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "Current Phase A"
+    address: 39
+    register_type: "read"
+    unit_of_measurement: A
+    device_class: current
+    state_class: measurement
+    icon: mdi:flash
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "Grid Active Power"
+    address: 35
+    register_type: "read"
+    unit_of_measurement: W
+    device_class: power
+    state_class: measurement
+    icon: mdi:solar-power
+    value_type: U_DWORD
+    accuracy_decimals: 0
+    filters:
+    - multiply: 0.1
+
+  - platform: modbus_controller
+    name: "Today's Generation"
+    skip_updates: $skip_updates_slow
+    address: 53
+    register_type: "read"
+    unit_of_measurement: kWh
+    state_class: total_increasing
+    device_class: energy
+    icon: mdi:solar-power
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1   
+
+  - platform: modbus_controller
+    name: "Total Energy Production"
+    skip_updates: $skip_updates_slow
+    address: 55
+    register_type: "read"
+    unit_of_measurement: kWh
+    state_class: total_increasing
+    device_class: energy
+    icon: mdi:solar-power
+    value_type: U_DWORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1    
+
+  - platform: modbus_controller
+    name: "Inverter Module Temp"
+    address: 93
+    register_type: "read"
+    unit_of_measurement: °C
+    device_class: temperature
+    state_class: measurement
+    entity_category: diagnostic
+    icon: mdi:thermometer
+    value_type: U_WORD
+    accuracy_decimals: 1
+    filters:
+    - multiply: 0.1
+    skip_updates: $skip_updates_slow   
+
+  - platform: uptime
+    name: " Uptime"
+    update_interval: 60s
+  - platform: wifi_signal
+    name: " Wi-Fi Signal"
+    update_interval: 60s
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: " IP Address"
+    ssid:
+      name: " Wi-Fi SSID"
+    bssid:
+      name: " Wi-Fi BSSID"
+  - platform: version
+    name: "ESPHome Version"
+    hide_timestamp: true
+
+  - platform: template
+    name: "Status state"
+    icon: mdi:eye
+    entity_category: diagnostic
+    lambda: |-
+      if ((id(status).state) == 1) { return {"Normal"}; }
+      else if ((id(status).state) == 0) { return {"Standby"}; }
+      else if ((id(status).state) == 3) { return {"Fault"}; }
+      else if ((id(status).state) == 5) { return {"PV Charging"}; }
+      else { return {"Unknown"}; }
+
+  - platform: modbus_controller
+    name: "Fault code"
+    address: 105
+    register_type: "read"
+    entity_category: diagnostic
+    raw_encode: HEXBYTES
+    lambda: |-
+      uint16_t value = modbus_controller::word_from_hex_str(x, 0);
+      if (value == 0) return std::string("No error");
+      return std::string("Fault code: " + to_string(value));
+      return x;
